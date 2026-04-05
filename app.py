@@ -1,18 +1,14 @@
 import streamlit as st
 import os
 import gdown
-import torch
 from PIL import Image
 
 # -------------------------------
-# 📌 CONFIG
+# 📌 DOWNLOAD MODEL FROM DRIVE
 # -------------------------------
 MODEL_PATH = "best_model.pth"
-FILE_ID = "1LCfciCjUA77qF_gwL5OyOxES2AAo0HCM"  # your drive file id
+FILE_ID = "1LCfciCjUA77qF_gwL5OyOxES2AAo0HCM"  # your file id
 
-# -------------------------------
-# 📌 DOWNLOAD MODEL
-# -------------------------------
 if not os.path.exists(MODEL_PATH):
     st.write("Downloading model... please wait ⏳")
     url = f"https://drive.google.com/uc?id={FILE_ID}"
@@ -23,19 +19,14 @@ if not os.path.exists(MODEL_PATH):
         st.error(f"Download failed: {e}")
 
 # -------------------------------
-# 📌 LOAD MODEL (SAFE)
+# 📌 IMPORT MODEL FUNCTION
 # -------------------------------
-@st.cache_resource
-def load_model():
-    try:
-        model = torch.load(MODEL_PATH, map_location="cpu")
-        model.eval()
-        return model
-    except Exception as e:
-        st.error(f"Model loading failed: {e}")
-        return None
-
-model = load_model()
+try:
+    from model_utils import predict
+    MODEL_LOADED = True
+except Exception as e:
+    st.error(f"Model import failed: {e}")
+    MODEL_LOADED = False
 
 # -------------------------------
 # 📌 UI
@@ -54,14 +45,15 @@ if uploaded_file is not None:
 
     if question:
         try:
-            if model is not None:
-                # 🔥 TODO: replace with your actual model logic
+            # Save uploaded image temporarily
+            temp_path = "temp.jpg"
+            image.save(temp_path)
 
-                # Example placeholder:
-                answer = "Model Answer (placeholder)"
-
+            if MODEL_LOADED:
+                # 🔥 REAL MODEL CALL
+                answer = predict(temp_path, question)
             else:
-                # fallback demo mode
+                # fallback if model fails
                 answer = "Demo Answer"
 
         except Exception as e:
