@@ -5,23 +5,35 @@ import torch
 from PIL import Image
 
 # -------------------------------
-# 📌 DOWNLOAD MODEL (1GB)
+# 📌 CONFIG
 # -------------------------------
 MODEL_PATH = "best_model.pth"
-
-if not os.path.exists(MODEL_PATH):
-    st.write("Downloading model... please wait ⏳")
-    url = "https://drive.google.com/uc?id=1LCfciCjUA77qF_gwL5OyOxES2AAo0HCM"
-    gdown.download(url, MODEL_PATH, quiet=False)
+FILE_ID = "1LCfciCjUA77qF_gwL5OyOxES2AAo0HCM"  # your drive file id
 
 # -------------------------------
-# 📌 LOAD MODEL (CACHE)
+# 📌 DOWNLOAD MODEL
+# -------------------------------
+if not os.path.exists(MODEL_PATH):
+    st.write("Downloading model... please wait ⏳")
+    url = f"https://drive.google.com/uc?id={FILE_ID}"
+    try:
+        gdown.download(url, MODEL_PATH, quiet=False)
+        st.success("Model downloaded successfully ✅")
+    except Exception as e:
+        st.error(f"Download failed: {e}")
+
+# -------------------------------
+# 📌 LOAD MODEL (SAFE)
 # -------------------------------
 @st.cache_resource
 def load_model():
-    model = torch.load(MODEL_PATH, map_location="cpu")
-    model.eval()
-    return model
+    try:
+        model = torch.load(MODEL_PATH, map_location="cpu")
+        model.eval()
+        return model
+    except Exception as e:
+        st.error(f"Model loading failed: {e}")
+        return None
 
 model = load_model()
 
@@ -30,10 +42,7 @@ model = load_model()
 # -------------------------------
 st.title("Cross-Lingual Visual Question Answering System")
 
-# Upload image
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "png"])
-
-# Input question
 question = st.text_input("Ask a question (English or Telugu)")
 
 # -------------------------------
@@ -45,19 +54,19 @@ if uploaded_file is not None:
 
     if question:
         try:
-            # 🔥 TODO: Replace with your real model logic
-            # Example:
-            # image_tensor = preprocess_image(image)
-            # question_tensor = preprocess_question(question)
-            # output = model(image_tensor, question_tensor)
-            # pred = torch.argmax(output, dim=1).item()
-            # answer = idx2answer[pred]
+            if model is not None:
+                # 🔥 TODO: replace with your actual model logic
 
-            answer = "Demo Answer"  # temporary
+                # Example placeholder:
+                answer = "Model Answer (placeholder)"
+
+            else:
+                # fallback demo mode
+                answer = "Demo Answer"
 
         except Exception as e:
-            st.error(f"Error: {e}")
-            answer = "Prediction failed"
+            st.error(f"Prediction error: {e}")
+            answer = "Error during prediction"
 
         st.subheader("Answer:")
         st.write(answer)
